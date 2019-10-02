@@ -5,35 +5,6 @@ let fs = require('fs');
 let os = require('os');
 const detectCharacterEncoding = os.type() === "Windows_NT" ? null : require('detect-character-encoding');
 
-function writeToCurveFile(buffer, index, value, defaultNull) {
-    let data = value;
-    if (parseFloat(value) === parseFloat(defaultNull)) {
-        data = "null";
-    }
-    buffer.push(data);
-    //buffer.writeStream.write(data);
-}
-
-function customSplit(str, delimiter){
-    let words;
-    if(str.includes('"')){
-        str = str.replace(/"[^"]+"/g, function (match, idx, string){
-            let tmp = match.replace(/"/g, '');
-            return '"' + Buffer.from(tmp).toString('base64') + '"';
-        })
-        words = str.split(delimiter);
-        words = words.map(function(word){
-            if(word.includes('"')){
-                return '"' + Buffer.from(word.replace(/"/g, ''), 'base64').toString() + '"';
-            }
-            else return word;
-        })
-    }else {
-        words = str.split(delimiter);
-    }
-    return words;
-}
-
 module.exports = function(inputFile, importData) {
     return new Promise((resolve, reject) => {
         const fileBuffer = fs.readFileSync(inputFile.path);
@@ -308,45 +279,43 @@ module.exports = function(inputFile, importData) {
                     } else if (sectionName == asciiTitle || new RegExp(dataTitle).test(sectionName)) {
                         const currentDataset = wellInfo.datasets[currentDatasetName];
                         fields = fields.concat(customSplit(line.trim(), delimitingChar));
-                        console.log(!wrapMode && fields.length <= currentDataset.curves.length)
                         if(!wrapMode && fields.length <= currentDataset.curves.length){
                             lasFormatError = "This file do node have enough data for every curves";
                             rl.close();
                         }
-                        console.log(fields.length  > currentDataset.curves.length + 1)
                         if(fields.length  > currentDataset.curves.length + 1){
                             lasFormatError = "number of curves less than number of data columns";
                             rl.close();
                         }
-                        console.log('continue');
-                        //if (fields.length == currentDataset.curves.length + 1) {
-                            //console.log('continue');
-                            //const count = currentDataset.count;
-                            //if (count == 0) {
-                                //currentDataset.top = fields[0];
-                            //} else if (count == 1) {
-                                //if (lasVersion == 2 && wellInfo.STEP.value == 0) {
-                                    //currentDataset.step = 0;
-                                //}
-                                //else {
-                                    //currentDataset.step = (fields[0] - lastDepth).toFixed(4);
-                                //}
-                            //} else {
-                                //if (currentDataset.step != 0 && !isFloatEqually(fields[0] - lastDepth, currentDataset.step)) {
-                                    //currentDataset.step = 0;
-                                //}
-                            //}
-                            //currentDataset.curves.forEach(function (curve, i) {
-                                //if(curve.type != "TEXT" && fields[i+1].includes('"')){
-                                    //curve.type = "TEXT";
-                                //}
-                                //writeToCurveFile(curve.data, fields[0], fields[i + 1], wellInfo.NULL.value);
-                            //});
-                            //currentDataset.bottom = fields[0];
-                            //currentDataset.count++
-                            //lastDepth = fields[0]; //save last depth
-                        //}
-                        fields = [];
+                        console.log(fields.length == currentDataset.curves.length + 1);
+                        if (fields.length == currentDataset.curves.length + 1) {
+                            console.log('continue');
+                            const count = currentDataset.count;
+                            if (count == 0) {
+                                currentDataset.top = fields[0];
+                            } else if (count == 1) {
+                                if (lasVersion == 2 && wellInfo.STEP.value == 0) {
+                                    currentDataset.step = 0;
+                                }
+                                else {
+                                    currentDataset.step = (fields[0] - lastDepth).toFixed(4);
+                                }
+                            } else {
+                                if (currentDataset.step != 0 && !isFloatEqually(fields[0] - lastDepth, currentDataset.step)) {
+                                    currentDataset.step = 0;
+                                }
+                            }
+                            currentDataset.curves.forEach(function (curve, i) {
+                                if(curve.type != "TEXT" && fields[i+1].includes('"')){
+                                    curve.type = "TEXT";
+                                }
+                                writeToCurveFile(curve.data, fields[0], fields[i + 1], wellInfo.NULL.value);
+                            });
+                            currentDataset.bottom = fields[0];
+                            currentDataset.count++
+                            lastDepth = fields[0]; //save last depth
+                            fields = [];
+                        }
                     }
                 }
             }
@@ -426,4 +395,41 @@ module.exports = function(inputFile, importData) {
             reject(err);
         }); 
     })
+}
+
+function writeToCurveFile(buffer, index, value, defaultNull) {
+    let data = value;
+    if (parseFloat(value) === parseFloat(defaultNull)) {
+        data = "null";
+    }
+    buffer.push(data);
+    //buffer.writeStream.write(data);
+}
+
+function customSplit(str, delimiter){
+    let words;
+    if(str.includes('"')){
+        str = str.replace(/"[^"]+"/g, function (match, idx, string){
+            let tmp = match.replace(/"/g, '');
+            return '"' + Buffer.from(tmp).toString('base64') + '"';
+        })
+        words = str.split(delimiter);
+        words = words.map(function(word){
+            if(word.includes('"')){
+                return '"' + Buffer.from(word.replace(/"/g, ''), 'base64').toString() + '"';
+            }
+            else return word;
+        })
+    }else {
+        words = str.split(delimiter);
+    }
+    return words;
+}
+
+function isFloatEqually(float1, float2){
+    const epsilon = 10 ** -7;
+    let rFloat1 = Math.round(float1 * 10 ** 6)/10**6;
+    let rFloat2 = Math.round(float2 * 10 ** 6)/10**6;
+    var delta = Math.abs(rFloat1 - rFloat2);
+    return delta < epsilon;
 }
