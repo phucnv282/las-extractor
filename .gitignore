@@ -6,3 +6,4 @@ bower_components
 /public/
 .eslintrc.json
 /.vscode/
+uploads
