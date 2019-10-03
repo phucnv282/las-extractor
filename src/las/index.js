@@ -3,7 +3,7 @@ const lasExtractProcess = require('./lasExtractProcess');
 module.exports = async function(req) {
     return new Promise(async (resolve, reject) => {
         let files = req.files;
-        if (!files || !files.length) return reject('NO FILE CHOSEN!!!');
+        if (!files || !files.length) reject('NO FILE CHOSEN!!!');
         let successFiles = [];
         let successWells = [];
         let errFiles = [];
@@ -27,6 +27,6 @@ module.exports = async function(req) {
             successWells: successWells,
             successFiles: successFiles
         }
-        return resolve(resVal);
+        resolve(resVal);
     })
 }
