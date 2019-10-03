@@ -98,7 +98,6 @@ module.exports = function(inputFile, importData) {
                         } else {
                             datasetName = sectionName.replace('_' + parameterTitle, '');
                         }
-                        // const datasetName = sectionName.substring(0, sectionName.lastIndexOf('_'));
                         if (datasets[datasetName]) return;
                         let dataset = {
                             name: datasetName,
@@ -114,15 +113,6 @@ module.exports = function(inputFile, importData) {
                         currentDatasetName = datasetName;
                     } else if (sectionName == asciiTitle || new RegExp(dataTitle).test(sectionName)) {
                         if (sectionName == asciiTitle) currentDatasetName = wellInfo.name + logDataIndex;
-                        //datasets[currentDatasetName].curves.forEach(curve => {
-                        //const hashstr = importData.userInfo.username + wellInfo.name + curve.datasetname + curve.name + curve.unit + curve.step;
-                        //filePaths[curve.name] = hashDir.createPath(config.dataPath, hashstr, curve.name + '.txt');
-                        //fs.writeFileSync(filePaths[curve.name], "");
-                        //curve.path = filePaths[curve.name];
-                        //BUFFERS[curve.name] = {
-                        //writeStream: fs.createWriteStream(filePaths[curve.name])
-                        //};
-                        //})
                     }
                 } else {
                     if (sectionName != asciiTitle && !new RegExp(dataTitle).test(sectionName)
@@ -202,7 +192,6 @@ module.exports = function(inputFile, importData) {
                             return;
                         }
 
-                        // const datasetName = sectionName == curveTitle ? wellInfo.name : sectionName.substring(0, sectionName.indexOf(definitionTitle));
                         let curveName = line.substring(0, line.indexOf('.')).trim().toUpperCase();
                         curveName = curveName.replace('/', '_');
                         let suffix = 1;
@@ -252,7 +241,6 @@ module.exports = function(inputFile, importData) {
                             startDepth: 0,
                             stopDepth: 0,
                             step: 0,
-                            //path: '',
                             description: curveDescription,
                             type: _format == 'S' || _format == 's' ? 'TEXT' : 'NUMBER',
                             data: []
@@ -311,15 +299,6 @@ module.exports = function(inputFile, importData) {
                 deleteFile(inputFile.path);
                 if (lasCheck != 2) lasFormatError = 'THIS IS NOT LAS FILE, MISSING DATA SECTION';
                 if (lasFormatError && lasFormatError.length > 0) {
-                    //for(var datasetName in datasets) {
-                    //const dataset = datasets[datasetName];
-                    //dataset.curves.forEach(curve => {
-                    //if(BUFFERS[curve.name] && BUFFERS[curve.name].writeStream) {
-                    //BUFFERS[curve.name].writeStream.end();
-                    //fs.unlinkSync(curve.path);
-                    //}
-                    //})
-                    //}
                     return reject(lasFormatError);
                 }
 
@@ -349,18 +328,15 @@ module.exports = function(inputFile, importData) {
                     updateWellDepthRange(wellInfo, dataset);
                     wellInfo.datasets.push(dataset);
                     dataset.curves.forEach(curve => {
-                        //BUFFERS[curve.name].writeStream.end();
                         curve.step = dataset.step;
                         curve.startDepth = dataset.top;
                         curve.stopDepth = dataset.bottom;
                         if (datasetStep < 0) {
                             reverseData(curve.path);
                         }
-                        //curve.path = curve.path.replace(config.dataPath + '/', '');
                     });
                 }
 
-                //let output = [];
                 output.push(wellInfo);
                 resolve(output);
             } catch (err) {
