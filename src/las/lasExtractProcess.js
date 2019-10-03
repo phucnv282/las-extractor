@@ -332,7 +332,7 @@ module.exports = function(inputFile, importData) {
                         curve.startDepth = dataset.top;
                         curve.stopDepth = dataset.bottom;
                         if (datasetStep < 0) {
-                            reverseData(curve.path);
+                            curve.data.reverse();
                         }
                     });
                 }
@@ -392,12 +392,6 @@ function isFloatEqually(float1, float2){
     let rFloat2 = Math.round(float2 * 10 ** 6)/10**6;
     var delta = Math.abs(rFloat1 - rFloat2);
     return delta < epsilon;
-}
-
-async function reverseData(filePath) {
-    let data = fs.readFileSync(filePath, 'utf8').trim().split('\n');
-    data.reverse();
-    fs.writeFileSync(filePath, data.join('\n'));
 }
 
 function updateWellDepthRange(well, dataset){
