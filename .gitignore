@@ -1,9 +1,4 @@
 node_modules
 package-lock.json
 yarn.lock
-bower_components
-/.idea/
-/public/
-.eslintrc.json
-/.vscode/
 uploads
